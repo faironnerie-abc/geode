@@ -10,11 +10,11 @@ module points(pts) {
 /** Point médian. */
 function midpoint(p0, p1) = p0 + ((p1 - p0) / 2);
 
-/** Projète un point sur la sphère centrée en (0,0,0) le long du rayon. */
+/** Projette un point sur la sphère centrée en (0,0,0) le long du rayon. */
 function onsphere(v, r) = (v / norm(v)) * r;
 
-/** Dessine un triangle si depth == 0, sinon subdivise le triangle en 4,
-  * recursivement jusqu'à depth == 0. */
+/** Dessine un triangle si `depth` == 0, sinon subdivise le triangle en 4,
+  * récursivement jusqu'à `depth` == 0. */
 module triangle(pts, depth, r) {
 	if(depth == 0) {
 		//points(pts);

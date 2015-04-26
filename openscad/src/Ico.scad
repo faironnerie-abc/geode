@@ -1,7 +1,7 @@
 include <Triangulate.scad>;
 
 radius = 1.0;
-depth = 2;		// pas plus de 9 sur ma machine ....
+depth = 2;		// pas cap de faire plus de 12 ...
 icosa = [[phi,1.,0],	// 0
          [-phi,1.,0.],	// 1
          [-phi,-1.,0.],	// 2
