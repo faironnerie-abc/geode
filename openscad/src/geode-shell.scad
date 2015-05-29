@@ -1,11 +1,11 @@
 phi = (1 + sqrt(5)) / 2; // golden ratio
 
-radius = 200; // of the circumscribed sphere
-width = 15; // of the edges
+radius = 300; // of the circumscribed sphere
+width = 20; // of the edges
 thickness = 6; // of the edges
 degree = 3; // nuber of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
-delta = 7; // gap at edge ends (radius of the gray spere that touches edges)
+delta = 6; // gap at edge ends (radius of the gray spere that touches edges)
 
 function normalize(v) = v / norm(v);
 
@@ -18,8 +18,8 @@ module edge(p1, p2) {
 	i = normalize(diff);
 	j = normalize(mid);
 	k = cross(i, j);
-	%translate(proj1) sphere(delta);
-	%translate(proj2) sphere(delta);
+	% translate(proj1) sphere(delta);
+	% translate(proj2) sphere(delta);
 	multmatrix(m = [
 		[i[0], j[0], k[0], mid[0]],
 		[i[1], j[1], k[1], mid[1]],
@@ -35,9 +35,9 @@ module edge2d(p1, p2) {
 	a = norm(p1 - p2) / 2;
 	b = norm(p1 + p2) / 2;
 	x = delta * radius / b;
-	y = a * width / b / 2;
+	y = a * width / b;
 	polygon(
-		points = [[-a + x - y, width / 2], [a - x + y, width / 2], [a - x - y, -width / 2], [-a + x + y, -width / 2]],
+		points = [[-a + x - y, width], [a - x + y, width], [a - x, 0], [-a + x, 0]],
 		paths = [[0, 1, 2, 3]]
 	);
 }
@@ -62,11 +62,12 @@ module vertex(p) {
 	np = normalize(p);
 	v = cross([0, 0, 1], np);
 	a = acos(np * [0, 0, 1]);
-	translate(np * (radius - width / 2 + thickness / 2)) rotate(a = a, v = v) difference() {
-		cylinder(h = thickness, r = 2 * delta, center = true);
+	translate(np * (radius + thickness / 2)) rotate(a = a, v = v) difference() {
+		cylinder(h = thickness, r = width + delta, center = true, $fn = 5);
 		cylinder(h = thickness + 1, r = delta, center = true);
 	}
 }*/
+
 
 points = [
 	[   0,    1, -phi],
@@ -123,4 +124,7 @@ module dome() {
 
 rotate([atan(1 / phi), 0, 0]) dome();
 
-// geode();
+/* difference() {
+	dome();
+	for (p = points) vertex(p);
+}*/
