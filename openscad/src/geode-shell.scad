@@ -6,6 +6,7 @@ thickness = 6; // of the edges
 degree = 3; // nuber of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
 delta = 6; // gap at edge ends (radius of the gray spere that touches edges)
+curved_edges = false;
 
 function normalize(v) = v / norm(v);
 
@@ -32,6 +33,13 @@ module edge(p1, p2) {
 
 // we suppose that p1 and p2 are already projected on the sphere
 module edge2d(p1, p2) {
+	if (curved_edges)
+		edge2d_curved(p1, p2);
+	else
+		edge2d_straight(p1, p2);
+}
+
+module edge2d_straight(p1, p2) {
 	a = norm(p1 - p2) / 2;
 	b = norm(p1 + p2) / 2;
 	x = delta * radius / b;
@@ -40,6 +48,23 @@ module edge2d(p1, p2) {
 		points = [[-a + x - y, width], [a - x + y, width], [a - x, 0], [-a + x, 0]],
 		paths = [[0, 1, 2, 3]]
 	);
+}
+
+module edge2d_curved(p1, p2) {
+	a = norm(p1 - p2) / 2;
+	b = norm(p1 + p2) / 2;
+	h = radius + width + 1;
+	c = h * a / b;
+	alpha = atan2(a, b);
+	translate([0, -b]) difference() {
+		intersection() {
+			circle(r = radius + width, $fa = 1);
+			polygon(points = [[-c, h], [c, h], [0, 0]], paths = [[0, 1, 2]]);
+		}
+		circle(r = radius, $fa = 1);
+		rotate(alpha) translate([-delta, 0]) square([2 * delta, h]);
+		rotate(-alpha) translate([-delta, 0]) square([2 * delta, h]);
+	}
 }
 
 module divide_face_helper(a, b, c) {
@@ -128,3 +153,5 @@ rotate([atan(1 / phi), 0, 0]) dome();
 	dome();
 	for (p = points) vertex(p);
 }*/
+
+// edge2d_curved(normalize(points[0]) * radius, normalize(points[1]) * radius);
