@@ -1,6 +1,6 @@
 phi = (1 + sqrt(5)) / 2; // golden ratio
 
-radius = 300; // of the circumscribed sphere
+radius = 500; // of the circumscribed sphere
 width = 15; // of the edges
 thickness = 6; // of the edges
 degree = 3; // number of segments on each original icosahedron edge.
@@ -49,10 +49,7 @@ module edge2d_straight(p1, p2) {
 	y = a * width / b;
 	alpha = atan2(a, b);
 	translate([0, -b]) difference() {
-		polygon(
-			points = [[-a + x - y, b + width], [a - x + y, b + width], [a - x, b], [-a + x, b]],
-			paths = [[0, 1, 2, 3]]
-		);
+		polygon([[-a + x - y, b + width], [a - x + y, b + width], [a - x, b], [-a + x, b]]);
 		for (i = [-1, 1])
 			translate([ i * a, b]) rotate(-i * alpha) translate([0, thickness / 2]) square([2 * delta + width, thickness], center = true);
 	}

@@ -43,7 +43,7 @@ module edgeC() {
 
 function joint_dir(p, n) = let(k = normalize(p), j = normalize(cross(k, n)), i = cross(j, k)) i;
 
-module joint2d(p, neighbors) {
+module joint2d(p, neighbors, mark = false) {
 	dirs = [for (n = neighbors) joint_dir(p, n)];
 	i = dirs[0];
 	k = normalize(cross(dirs[0], dirs[1]));
@@ -54,10 +54,12 @@ module joint2d(p, neighbors) {
 		circle(r = delta);
 		for (d = dirs2d)
 			rotate(sign(d[1]) * acos(d[0])) translate([delta + width / 2, -thickness / 2]) square([width, thickness]);
+		s = 3;
+		if (mark) translate([delta - s / 2, 0]) polygon([[0, -s], [s, 0], [0, s]]);
 	}
 }
 
-module test_joint(p, neighbors) {
+module test_joint(p, neighbors, mark = false) {
 	k = normalize(p);
 	j = normalize(cross(k, neighbors[0]));
 	i = cross(j, k);
@@ -66,11 +68,11 @@ module test_joint(p, neighbors) {
 	% for (n = neighbors) edge(p, n);
 }
 
-module joint(p, neighbors, test = false) {
+module joint(p, neighbors, test = false, mark = false) {
 	if (test)
-		test_joint(p, neighbors);
+		test_joint(p, neighbors, mark);
 	else
-		joint2d(p, neighbors);
+		joint2d(p, neighbors, mark);
 }
 
 
@@ -83,14 +85,14 @@ module jointA(test = false) {
 module jointB(test = false) {
 	p = (2 * points[4] + points[8]) / 3;
 	neighbors = [
-		points[4] + 2 * points[8],
-		points[4] + points[8] + points[3],
-		2 * points[4] + points[3],
 		3 * points[4],
 		2 * points[4] + points[10],
-		points[4] + points[10] + points[8]
+		points[4] + points[10] + points[8],
+		points[4] + 2 * points[8],
+		points[4] + points[8] + points[3],
+		2 * points[4] + points[3]
 	] / 3;
-	joint(p, neighbors, test);
+	joint(p, neighbors, test, mark = true);
 }
 
 module jointC(test = false) {
@@ -114,6 +116,7 @@ translate([0, 2 * (width + 1)]) edgeC();
 translate([-2*(delta + width) - 1, 3 * (width + 1) + delta + width]) jointA();
 translate([0, 3 * (width + 1) + delta + width]) jointB();
 translate([2*(delta + width) + 1, 3 * (width + 1) + delta + width]) jointC();
+
 
 // jointA(true);
 // jointB(true);
