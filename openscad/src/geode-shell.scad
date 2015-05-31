@@ -1,7 +1,7 @@
 phi = (1 + sqrt(5)) / 2; // golden ratio
 
 radius = 300; // of the circumscribed sphere
-width = 20; // of the edges
+width = 15; // of the edges
 thickness = 6; // of the edges
 degree = 3; // number of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
@@ -190,8 +190,8 @@ module dome() {
 // for (f = faces)
 // 	vertices(points[f[0]], points[f[1]], points[f[2]]);
 
-divide_face(points[0], points[1], points[2]);
-% vertices(points[0], points[1], points[2]);
+// divide_face(points[0], points[1], points[2]);
+// % vertices(points[0], points[1], points[2]);
 
 
 // edge2d(normalize(points[0]) * radius, normalize((2 * points[0] + points[1]) / 3) * radius);
