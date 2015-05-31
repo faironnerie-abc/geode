@@ -47,10 +47,15 @@ module edge2d_straight(p1, p2) {
 	b = norm(p1 + p2) / 2;
 	x = delta * radius / b;
 	y = a * width / b;
-	polygon(
-		points = [[-a + x - y, width], [a - x + y, width], [a - x, 0], [-a + x, 0]],
-		paths = [[0, 1, 2, 3]]
-	);
+	alpha = atan2(a, b);
+	translate([0, -b]) difference() {
+		polygon(
+			points = [[-a + x - y, b + width], [a - x + y, b + width], [a - x, b], [-a + x, b]],
+			paths = [[0, 1, 2, 3]]
+		);
+		for (i = [-1, 1])
+			translate([ i * a, b]) rotate(-i * alpha) translate([0, thickness / 2]) square([2 * delta + width, thickness], center = true);
+	}
 }
 
 module edge2d_curved(p1, p2) {
@@ -181,8 +186,13 @@ module dome() {
 // geode();
 // for (i = [0:4]) v5(points[i], points[i + 1]);
 
-geode();
-for (f = faces)
-	vertices(points[f[0]], points[f[1]], points[f[2]]);
+// geode();
+// for (f = faces)
+// 	vertices(points[f[0]], points[f[1]], points[f[2]]);
 
+divide_face(points[0], points[1], points[2]);
+% vertices(points[0], points[1], points[2]);
+
+
+// edge2d(normalize(points[0]) * radius, normalize((2 * points[0] + points[1]) / 3) * radius);
 
