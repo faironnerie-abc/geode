@@ -3,12 +3,21 @@ phi = (1 + sqrt(5)) / 2; // golden ratio
 radius = 300; // of the circumscribed sphere
 width = 20; // of the edges
 thickness = 6; // of the edges
-degree = 3; // nuber of segments on each original icosahedron edge.
+degree = 3; // number of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
-delta = 6; // gap at edge ends (radius of the gray spere that touches edges)
+delta = 7; // gap at edge ends (radius of the gray spere that touches edges)
 curved_edges = false;
 
 function normalize(v) = v / norm(v);
+
+module change_coord(i, j, k, t) {
+	multmatrix(m = [
+		[i[0], j[0], k[0], t[0]],
+		[i[1], j[1], k[1], t[1]],
+		[i[2], j[2], k[2], t[2]],
+		[0, 0, 0, 1]
+	]) children();
+}
 
 module edge(p1, p2) {
 	proj1 = normalize(p1) * radius;
@@ -19,16 +28,10 @@ module edge(p1, p2) {
 	i = normalize(diff);
 	j = normalize(mid);
 	k = cross(i, j);
-	% translate(proj1) sphere(delta);
-	% translate(proj2) sphere(delta);
-	multmatrix(m = [
-		[i[0], j[0], k[0], mid[0]],
-		[i[1], j[1], k[1], mid[1]],
-		[i[2], j[2], k[2], mid[2]],
-		[0, 0, 0, 1],
-		]) {
+	// % translate(proj1) sphere(delta);
+	// % translate(proj2) sphere(delta);
+	change_coord(i, j, k, mid)
 		translate([0, 0, -thickness / 2]) linear_extrude(height = thickness) edge2d(proj1, proj2);
-	}
 }
 
 // we suppose that p1 and p2 are already projected on the sphere
@@ -82,16 +85,42 @@ module divide_face(a, b, c) {
 	divide_face_helper(c, a, b);
 }
 
-/*
-module vertex(p) {
-	np = normalize(p);
-	v = cross([0, 0, 1], np);
-	a = acos(np * [0, 0, 1]);
-	translate(np * (radius + thickness / 2)) rotate(a = a, v = v) difference() {
-		cylinder(h = thickness, r = width + delta, center = true, $fn = 5);
-		cylinder(h = thickness + 1, r = delta, center = true);
+
+
+module vertex2d(sides) {
+	difference() {
+		circle(r = width + delta, $fn = sides);
+		rotate(180 / sides) circle(r = delta, $fn = sides);
+		for (i = [0 : sides - 1])
+			rotate(i * 360 / sides) translate([delta + width / 2, - thickness / 2]) square([width, thickness]);
 	}
-}*/
+}
+
+module vertex(sides, p1, p2) {
+	k = normalize(p1);
+	j = normalize(cross(k, p2));
+	i = cross(j, k);
+	t = normalize(p1) * (radius + thickness / 2);
+	change_coord(i, j, k, t) {
+		translate([0, 0, -thickness / 2]) linear_extrude(height = thickness) vertex2d(sides);
+		// cube([30, thickness, thickness], center = true);
+	}
+}
+
+
+module vertices(a, b, c) {
+	ab = (b - a) / degree;
+	ac = (c - a) / degree;
+	vertex(5, a, b);
+	vertex(5, b, c);
+	vertex(5, c, a);
+	for (j = [1:degree - 1])
+		vertex(6, a + j * ab, a + (j + 1) * ab);
+	for (i = [1:degree - 1], j = [0:degree - i]) {
+		p = a + i * ac + j * ab;
+		vertex(6, p, p + ab);
+	}
+}
 
 
 points = [
@@ -147,11 +176,13 @@ module dome() {
 }
 
 
-rotate([atan(1 / phi), 0, 0]) dome();
+//rotate([atan(1 / phi), 0, 0]) dome();
 
-/* difference() {
-	dome();
-	for (p = points) vertex(p);
-}*/
+// geode();
+// for (i = [0:4]) v5(points[i], points[i + 1]);
 
-// edge2d_curved(normalize(points[0]) * radius, normalize(points[1]) * radius);
+geode();
+for (f = faces)
+	vertices(points[f[0]], points[f[1]], points[f[2]]);
+
+
