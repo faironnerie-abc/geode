@@ -1,6 +1,6 @@
 phi = (1 + sqrt(5)) / 2; // golden ratio
 
-radius = 600; // of the circumscribed sphere
+radius = 500; // of the circumscribed sphere
 width = 15; // of the edges
 thickness = 6; // of the edges
 degree = 3; // number of segments on each original icosahedron edge.

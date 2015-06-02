@@ -5,6 +5,7 @@ include <geode-shell.scad>;
 mark_size = 3;
 mark_points = [[0, -mark_size], [mark_size, 0], [0, mark_size]];
 board_size = [1200, 800];
+board_gap = 2;
 
 // Parts needed for a complete geode :
 // edgeA x  60
@@ -68,8 +69,10 @@ module test_joint(p, neighbors, mark = false) {
 	j = normalize(cross(k, neighbors[0]));
 	i = cross(j, k);
 	t = k * radius;
-	change_coord(i, j, k, t) linear_extrude(height = thickness) joint2d(p, neighbors, mark);
-	% for (n = neighbors) edge(p, n);
+	// difference() {
+		change_coord(i, j, k, t) linear_extrude(height = thickness) joint2d(p, neighbors, mark);
+		% for (n = neighbors) edge(p, n);
+	// }
 }
 
 module joint(p, neighbors, test = false, mark = false) {
@@ -134,6 +137,17 @@ module sample() {
 	translate([2*(delta + width) + 1, 3 * (width + 2) + delta + width]) jointC();
 }
 
+module in_grid(xsize, ysize, xcount, ycount, gap = board_gap) {
+	for(x = [0 : xcount - 1], y = [0 : ycount - 1])
+		translate([x * (xsize + gap), y * (ysize + gap)]) children();
+}
+
+module in_3grid(r, xcount, ycount) {
+	for(y = [0 : ycount - 1], x = [0 : xcount - 1])
+		translate([(y % 2 + 2 * x), y * sqrt(3)] * r) children();
+}
+
+
 // parts needed for one icosahedron face
 module board_test() {
 	la = edge_length(points[0], (2 * points[0] + points[1]) / 3);
@@ -141,60 +155,53 @@ module board_test() {
 	lc = edge_length((2 * points[0] + points[1]) / 3, (points[0] + points[1] + points[2]) / 3);
 	echo(la, lb, lc);
 	% square(board_size);
-	for (i = [0:5]) translate([la / 2, i * (width + 2)]) edgeA();
-	for (i = [0:5]) translate([lb / 2, (i + 6) * (width + 2)]) edgeB();
-	for (i = [0:5]) translate([lc / 2, (i + 12) * (width + 2)]) edgeC();
-	s = 2 * (delta + width);
-	for(j = [0:2]) translate([s / 2 + j * s, s / 2 + 18 * (width + 2)]) jointA();
-	translate([s / 2 + 3 * s, s / 2 + 18 * (width + 2)]) jointC();
-	translate([s / 2 + 4 * s, s / 2 + 18 * (width + 2)]) jointB();
-	for (j = [0:4]) translate([s / 2 + j * s, s / 2 + 18 * (width + 2) + s]) jointB();
+	translate([la / 2, 0]) in_grid(la, width, 1, 6) edgeA();
+	translate([lb / 2, 6 * (width + board_gap)]) in_grid(lb, width, 1, 6) edgeB();
+	translate([lc / 2, 12 * (width + board_gap)]) in_grid(lc, width, 1, 6) edgeC();
+	r = delta + width;
+	translate([r, r + 18 * (width + board_gap)]) {
+		in_grid(2 * r, 2 * r, 3, 1, 0) jointA();
+		translate([6 * r, 0]) jointC();
+		translate([8 * r, 0]) jointB();
+		translate([0, 2 * r]) in_grid(2 * r, 2 * r, 5, 1) jointB();
+	}
 }
 
-module board1() {
+module board_edges() {
 	la = edge_length(points[0], (2 * points[0] + points[1]) / 3);
 	lb = edge_length(2 * points[0] + points[1], (points[0] + 2 * points[1]) / 3);
 	lc = edge_length((2 * points[0] + points[1]) / 3, (points[0] + points[1] + points[2]) / 3);
-	s = 2 * (delta + width);
 	echo(la, lb, lc);
 	% square(board_size);
+	// 90 x edgeB
+	translate([lb / 2, 0]) in_grid(lb, width, 2, 45) edgeB();
 	// 120 x edgeC
-	for (i = [0:39], j = [0:2]) translate([lc / 2 + j * (lc + 2), i * (width + 2)]) edgeC();
-	// 40 x edgeB
-	for(i = [0:39]) translate([lb / 2 + 3 * (lc + 2), i * (width + 2)]) edgeB();
-	// 40 x edgeA
-	for(i = [0:39]) translate([la / 2 + 3 * (lc + 2) + (lb + 2), i * (width + 2)]) edgeA();
-	// 52 x jointB
-	for(i = [0:1], j = [0:25]) translate([s / 2 + j * s, s / 2 + 40 * (width + 2) + i * s]) jointB();	
+	translate([lc / 2 + 2 * (lb + board_gap), 0]) in_grid(lc, width, 3, 40) edgeC();
+	// 60 x edgeA
+	translate([la / 2 + 2 * (lb + board_gap) + 3 * (lc + board_gap), 0]) in_grid(la, width, 1, 40) edgeA();
+	translate([la / 2 + 2 * (lb + board_gap), 40 * (width + board_gap)]) in_grid(la, width, 4, 5) edgeA();
 }
 
-module board2() {
-	la = edge_length(points[0], (2 * points[0] + points[1]) / 3);
-	lb = edge_length(2 * points[0] + points[1], (points[0] + 2 * points[1]) / 3);
-	lc = edge_length((2 * points[0] + points[1]) / 3, (points[0] + points[1] + points[2]) / 3);
-	s = 2 * (delta + width);
-	echo(la, lb, lc);
+module board_joints() {
 	% square(board_size);
-	// 50 x edgeB
-	for(i = [0:34]) translate([lb / 2, i * (width + 2)]) edgeB();
-	for(i = [0:14]) translate([lb / 2 + (lb + 2), i * (width + 2)]) edgeB();
-	// 20 x edgeA
-	for (i = [0:19]) translate([la / 2 + (lb + 2), (15 + i) * (width + 2)]) edgeA();
-	// 20 x edgeC
-	for(i = [0:9], j = [0:1]) translate([s / 2 + i * s, s / 2 + 35 * (width + 2) + j * s]) jointC();
-	// 12 x jointA
-	for (i = [0:9]) translate([s / 2 + i * s, s / 2 + 35 * (width + 2) + 2 * s]) jointA();
-	for (i = [0:1]) translate([s / 2 + i * s, s / 2 + 35 * (width + 2) + 3 * s]) jointA();
-	// 8 jointB
-	for (i = [0:7]) translate([s / 2 + 2 * s + i * s, s / 2 + 35 * (width + 2) + 3 * s]) jointB();
+	r = delta + width;
+	translate([r, r]) {
+		// 12 x jointA
+		in_3grid(r, 6, 2) jointA();
+		// 60 x jointB
+		translate([0, 2 * r * sqrt(3), 0]) in_3grid(r, 6, 10) jointB();
+		// 20 x jointC
+		translate([0, 12 * r * sqrt(3), 0]) in_3grid(r, 5, 4) jointC();
+	}
 }
+
 
 // sample();
 // board_test();
-board1();
-// board2();
+// board_edges();
+// board_joints();
 
-// jointA(true);
-// jointB(true);
-// jointC(true);
+jointA(true);
+jointB(true);
+jointC(true);
 
