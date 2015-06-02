@@ -204,4 +204,3 @@ module board_joints() {
 jointA(true);
 jointB(true);
 jointC(true);
-

@@ -6,7 +6,6 @@ thickness = 6; // of the edges
 degree = 3; // number of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
 delta = 7; // gap at edge ends (radius of the gray spere that touches edges)
-curved_edges = false;
 
 function normalize(v) = v / norm(v);
 
@@ -36,13 +35,6 @@ module edge(p1, p2) {
 
 // we suppose that p1 and p2 are already projected on the sphere
 module edge2d(p1, p2) {
-	if (curved_edges)
-		edge2d_curved(p1, p2);
-	else
-		edge2d_straight(p1, p2);
-}
-
-module edge2d_straight(p1, p2) {
 	a = norm(p1 - p2) / 2;
 	b = norm(p1 + p2) / 2;
 	x = delta * radius / b;
@@ -52,23 +44,6 @@ module edge2d_straight(p1, p2) {
 		polygon([[-a + x - y, b + width], [a - x + y, b + width], [a - x, b], [-a + x, b]]);
 		for (i = [-1, 1])
 			translate([ i * a, b]) rotate(-i * alpha) translate([0, thickness / 2]) square([2 * delta + width, thickness], center = true);
-	}
-}
-
-module edge2d_curved(p1, p2) {
-	a = norm(p1 - p2) / 2;
-	b = norm(p1 + p2) / 2;
-	h = radius + width + 1;
-	c = h * a / b;
-	alpha = atan2(a, b);
-	translate([0, -b]) difference() {
-		intersection() {
-			circle(r = radius + width, $fa = 1);
-			polygon(points = [[-c, h], [c, h], [0, 0]], paths = [[0, 1, 2]]);
-		}
-		circle(r = radius, $fa = 1);
-		rotate(alpha) translate([-delta, 0]) square([2 * delta, h]);
-		rotate(-alpha) translate([-delta, 0]) square([2 * delta, h]);
 	}
 }
 
@@ -85,43 +60,6 @@ module divide_face(a, b, c) {
 	divide_face_helper(a, b, c);
 	divide_face_helper(b, c, a);
 	divide_face_helper(c, a, b);
-}
-
-
-
-module vertex2d(sides) {
-	difference() {
-		circle(r = width + delta, $fn = sides);
-		rotate(180 / sides) circle(r = delta, $fn = sides);
-		for (i = [0 : sides - 1])
-			rotate(i * 360 / sides) translate([delta + width / 2, - thickness / 2]) square([width, thickness]);
-	}
-}
-
-module vertex(sides, p1, p2) {
-	k = normalize(p1);
-	j = normalize(cross(k, p2));
-	i = cross(j, k);
-	t = normalize(p1) * (radius + thickness / 2);
-	change_coord(i, j, k, t) {
-		translate([0, 0, -thickness / 2]) linear_extrude(height = thickness) vertex2d(sides);
-		// cube([30, thickness, thickness], center = true);
-	}
-}
-
-
-module vertices(a, b, c) {
-	ab = (b - a) / degree;
-	ac = (c - a) / degree;
-	vertex(5, a, b);
-	vertex(5, b, c);
-	vertex(5, c, a);
-	for (j = [1:degree - 1])
-		vertex(6, a + j * ab, a + (j + 1) * ab);
-	for (i = [1:degree - 1], j = [0:degree - i]) {
-		p = a + i * ac + j * ab;
-		vertex(6, p, p + ab);
-	}
 }
 
 
@@ -171,10 +109,11 @@ module geode() {
 }
 
 module dome() {
-	for(f = faces)
-		if (f[0] != 6 && f[1] != 6 && f[2] != 6)
-			divide_face(points[f[0]], points[f[1]], points[f[2]]);
-
+	rotate([atan(1 / phi)]) {
+		for(f = faces)
+			if (f[0] != 6 && f[1] != 6 && f[2] != 6)
+				divide_face(points[f[0]], points[f[1]], points[f[2]]);
+	}
 }
 
 
