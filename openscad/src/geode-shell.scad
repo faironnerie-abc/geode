@@ -6,6 +6,7 @@ thickness = 6; // of the edges
 degree = 3; // number of segments on each original icosahedron edge.
 // Thus each icosahedron face is divided on degree^2 triangles.
 delta = 7; // gap at edge ends (radius of the gray spere that touches edges)
+eps = 0.1; // holes in edges and joints are eps smaller than thickness. May help for better fit.
 
 function normalize(v) = v / norm(v);
 
@@ -43,7 +44,7 @@ module edge2d(p1, p2) {
 	translate([0, -b]) difference() {
 		polygon([[-a + x - y, b + width], [a - x + y, b + width], [a - x, b], [-a + x, b]]);
 		for (i = [-1, 1])
-			translate([ i * a, b]) rotate(-i * alpha) translate([0, thickness / 2]) square([2 * delta + width, thickness], center = true);
+			translate([ i * a, b]) rotate(-i * alpha) translate([0, thickness / 2]) square([2 * delta + width, thickness - eps], center = true);
 	}
 }
 

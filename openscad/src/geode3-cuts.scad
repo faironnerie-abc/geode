@@ -59,7 +59,7 @@ module joint2d(p, neighbors, mark = false) {
 		polygon((delta + width) * dirs2d);
 		circle(r = delta);
 		for (d = dirs2d)
-			rotate(sign(d[1]) * acos(d[0])) translate([delta + width / 2, -thickness / 2]) square([width, thickness]);
+			rotate(sign(d[1]) * acos(d[0])) translate([delta + width / 2, -(thickness - eps) / 2]) square([width, thickness - eps]);
 		if (mark) translate([delta - mark_size / 2, 0]) polygon(mark_points);
 	}
 }
@@ -69,7 +69,7 @@ module test_joint(p, neighbors, mark = false) {
 	j = normalize(cross(k, neighbors[0]));
 	i = cross(j, k);
 	t = k * radius;
-	// difference() {
+	// intersection() {
 		change_coord(i, j, k, t) linear_extrude(height = thickness) joint2d(p, neighbors, mark);
 		% for (n = neighbors) edge(p, n);
 	// }
@@ -200,6 +200,7 @@ module board_joints() {
 // board_test();
 // board_edges();
 // board_joints();
+
 
 jointA(true);
 jointB(true);
